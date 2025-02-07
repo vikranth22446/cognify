@@ -161,6 +161,7 @@ class OptConfig:
     opt_log_path: str = field(default=None)
     param_save_path: str = field(default=None)
     frugal_eval_cost: bool = field(default=True)
+    rl_based: bool = field(default=False)
     use_SH_allocation: bool = field(default=False)
     patience: Optional[PatienceConfig] = field(default_factory=lambda: PatienceConfig(0.01,0.01,0.01,5))
     frac: float = field(default=1.0)

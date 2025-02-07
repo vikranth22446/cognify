@@ -39,6 +39,7 @@ from cognify.optimizer.evaluator import (
 from optuna.samplers import TPESampler, _base
 from optuna.trial import TrialState, FrozenTrial
 from cognify.optimizer.bo.tpe import FrugalTPESampler
+from cognify.optimizer.rl.rl_sampler import RLSampler
 from cognify.optimizer.core.flow import (
     TrialLog,
     ModuleTransformTrace,
@@ -209,9 +210,17 @@ class OptimizationLayer:
         for param_name, dist in self.param_categorical_dist.items():
             if dist.single():
                 continue
+            if isinstance(trial_proposal[param_name], str):
+                internal_repr = dist.to_internal_repr(
+                    trial_proposal[param_name]
+                )
+            else:
+                internal_repr = trial_proposal[param_name]
+
             ext_trial_proposal[param_name] = dist.to_external_repr(
-                trial_proposal[param_name]
+                internal_repr
             )
+                
         for lm_name, params in self.params.items():
             agent_cost = 1.0
             # for param imposed on the same agent, multiply the cost
@@ -239,7 +248,16 @@ class OptimizationLayer:
         params update may change the mapping between option index and the option itself
         """
         qc_fn = get_quality_constraint if self.quality_constraint is not None else None
-        if self.top_down_info.opt_config.frugal_eval_cost:
+        assert self.top_down_info.opt_config.rl_based
+        if self.top_down_info.opt_config.rl_based:
+            sampler = RLSampler(
+                cost_estimator=self.param_cost_estimator, 
+                epsilon=0.1, 
+                alpha=0.1,
+                n_startup_trials=5,
+                constraints_func=qc_fn
+            )
+        elif self.top_down_info.opt_config.frugal_eval_cost:
             sampler = FrugalTPESampler(
                 cost_estimator=self.param_cost_estimator,
                 multivariate=True,
@@ -291,7 +309,6 @@ class OptimizationLayer:
                     new_module, new_mapping = param.apply_option(
                         selected, module_dict[lm_name]
                     )
-
                     for old_name, new_name in new_mapping.items():
                         trace_for_next_level.add_mapping(old_name, new_name)
                     new_modules.append(new_module)
