@@ -19,7 +19,7 @@ class SearchParams:
     evaluator_batch_size: int = 10
     opt_log_dir: str = "opt_results"
     model_selection_cog: model_selection.LMSelection = None
-
+    rl_based: bool = False
 
 def create_light_search(search_params: SearchParams) -> ControlParameter:
     # Reasoning Parameter
@@ -199,6 +199,7 @@ def create_search(
     objectives: list[Literal["quality", "cost", "latency"]] = ["quality", "cost", "latency"],
     evaluator_batch_size: int = 10,
     opt_log_dir: str = "opt_results",
+    rl_based: bool = False
 ):
     if model_selection_cog is not None:
         if isinstance(model_selection_cog, list):
@@ -230,6 +231,7 @@ def create_search(
         evaluator_batch_size,
         opt_log_dir,
         model_selection_cog,
+        rl_based=rl_based
     )
 
     trace_default_search(search_type, quality_constraint, list(set(objectives)))

@@ -19,6 +19,8 @@ def create_qa_search(search_params: SearchParams) -> ControlParameter:
     # Layer Config
     inner_opt_config = flow.OptConfig(
         n_trials=5,
+        rl_based=search_params.rl_based
+
     )
     inner_loop_config = driver.LayerConfig(
         layer_name="inner_loop",
@@ -41,6 +43,7 @@ def create_qa_search(search_params: SearchParams) -> ControlParameter:
     outer_opt_config = flow.OptConfig(
         n_trials=outer_trials, 
         throughput=outer_throughput,
+        rl_based=search_params.rl_based,
     )
     outer_loop_config = driver.LayerConfig(
         layer_name="outer_loop",
@@ -65,6 +68,7 @@ def create_search(
     opt_log_dir: str = "opt_results",
     objectives: list[Literal["quality", "cost", "latency"]] = ["quality", "cost", "latency"],
     model_selection_cog: model_selection.LMSelection | list[LMConfig] | None = None,
+    rl_based: bool = False
 ):
     if model_selection_cog is not None:
         if isinstance(model_selection_cog, list):
@@ -86,6 +90,7 @@ def create_search(
         evaluator_batch_size,
         opt_log_dir,
         model_selection_cog,
+        rl_based=rl_based
     )
     trace_custom_search("qa", n_trials, quality_constraint)
     return create_qa_search(search_params)
