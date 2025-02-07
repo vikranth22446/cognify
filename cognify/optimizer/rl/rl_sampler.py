@@ -76,11 +76,6 @@ class RLSampler(BaseSampler):
         return adjusted_reward
 
     def after_trial(self, study, trial, state, value):
-        """
-        After a trial, update the Q-table using a simple Q-learning rule.
-        The reward is adjusted by a cost penalty (using a logarithmic penalty)
-        and an extra penalty if any constraint is violated.
-        """
         if state != optuna.trial.TrialState.COMPLETE:
             return
 
